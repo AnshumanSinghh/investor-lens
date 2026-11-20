@@ -1,0 +1,77 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "investor-lens"
+dynamic = ["version"]  # single source of truth: investor_lens.__version__
+description = "Screens equities through Buffett, Marks and Dalio quantitative rules and emits an LLM-ready payload."
+readme = "README.md"
+keywords = ["investing", "value-investing", "yfinance", "llm", "screening"]
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Typing :: Typed",
+]
+requires-python = ">=3.12"
+dependencies = [
+    "numpy>=2.5",
+    "pandas>=3.1",
+    "yfinance>=1.8",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=9.1",
+    "pytest-cov>=7.1",
+    "ruff>=0.17",
+    "mypy>=2.4",
+    "pandas-stubs>=3.1",
+]
+
+[project.scripts]
+investor-lens = "investor_lens.cli:main"
+
+[tool.setuptools.dynamic]
+version = { attr = "investor_lens.__version__" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+investor_lens = ["py.typed"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src", "tests"]
+addopts = "-ra --import-mode=importlib -m 'not live'"
+markers = ["live: hits real vendor endpoints; opt-in via LENS_RUN_LIVE=1"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+src = ["src", "tests"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "SIM", "C4", "RUF"]
+# The codebase deliberately uses typing.Optional/List for readability.
+ignore = ["UP006", "UP007", "UP035", "UP045"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+files = ["src"]
+warn_unused_ignores = true
+
+# yfinance ships no type information.
+[[tool.mypy.overrides]]
+module = ["yfinance", "yfinance.*"]
+ignore_missing_imports = true
+
+[tool.coverage.run]
+source = ["investor_lens"]
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+skip_covered = true
